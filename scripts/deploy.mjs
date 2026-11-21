@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs";
 
+// A dry run makes no changes. With MAKE_API_KEY set it still reads the app, so it checks the
+// repo's connection and module names against the live app.
 const dryRun = process.argv.includes("--dry-run");
+const readLive = !dryRun || Boolean(process.env.MAKE_API_KEY);
 
 const env = {};
 const missing = [];
@@ -20,7 +23,7 @@ const versionPath = `${appPath}/${env.MAKE_APP_VERSION}`;
 
 async function request(method, url, { json, file } = {}) {
   console.log(`${method} ${url}${file ? `  <- ${file}` : ""}`);
-  if (dryRun) return {};
+  if (dryRun && (method !== "GET" || !readLive)) return {};
   const headers = { Authorization: `Token ${env.MAKE_API_KEY}` };
   let body;
   if (file) {
@@ -38,12 +41,23 @@ async function request(method, url, { json, file } = {}) {
   return text ? JSON.parse(text) : {};
 }
 
-// A dry run calls nothing, so it plans for an app with no connection or modules yet.
+// Read and check everything before the first write.
 const connections = (await request("GET", `${appPath}/connections`)).appConnections ?? [];
 let connection = connections.find((item) => item.label === app.connection.label);
 if (!connection && connections.length > 0) {
   const labels = connections.map((item) => item.label).join(", ");
   throw new Error(`No connection labelled "${app.connection.label}"; the app has [${labels}]`);
+}
+const existing = (await request("GET", `${versionPath}/modules`)).appModules ?? [];
+// Modules on a published app can't be deleted, so a renamed directory must not add a second module.
+const absent = Object.keys(app.modules).filter((name) => !existing.some((item) => item.name === name));
+if (existing.length > 0 && absent.length > 0) {
+  const names = existing.map((item) => item.name).join(", ");
+  throw new Error(`The app has modules [${names}] but not [${absent.join(", ")}]`);
+}
+if (dryRun && readLive) {
+  const names = existing.map((item) => item.name).join(", ");
+  console.log(`Live app: connection ${connection?.name ?? "(none)"}, modules [${names}]`);
 }
 if (!connection) {
   const created = await request("POST", `${appPath}/connections`, { json: app.connection });
@@ -55,13 +69,6 @@ await request("POST", `${versionPath}/base`, { file: "base.json" });
 await request("PUT", `${connectionUrl}/api`, { file: "connection/communication.json" });
 await request("PUT", `${connectionUrl}/parameters`, { file: "connection/parameters.json" });
 
-const existing = (await request("GET", `${versionPath}/modules`)).appModules ?? [];
-// Modules on a published app can't be deleted, so a renamed directory must not add a second module.
-const absent = Object.keys(app.modules).filter((name) => !existing.some((item) => item.name === name));
-if (existing.length > 0 && absent.length > 0) {
-  const names = existing.map((item) => item.name).join(", ");
-  throw new Error(`The app has modules [${names}] but not [${absent.join(", ")}]`);
-}
 for (const [name, module] of Object.entries(app.modules)) {
   const { label, description, typeId, crud } = module;
   const moduleUrl = `${versionPath}/modules/${name}`;

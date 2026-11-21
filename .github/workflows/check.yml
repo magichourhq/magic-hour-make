@@ -18,4 +18,10 @@ jobs:
           node-version: "24"
           package-manager-cache: false
       - run: node scripts/check.mjs
+      # Reads the live app when the secret is set, so a renamed module fails here, not on deploy.
       - run: node scripts/deploy.mjs --dry-run
+        env:
+          MAKE_API_KEY: ${{ secrets.MAKE_API_KEY }}
+          MAKE_ZONE: ${{ vars.MAKE_ZONE }}
+          MAKE_APP_NAME: ${{ vars.MAKE_APP_NAME }}
+          MAKE_APP_VERSION: ${{ vars.MAKE_APP_VERSION }}
