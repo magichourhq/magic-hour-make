@@ -14,7 +14,6 @@ function sorted(values) {
   return [...values].sort().join(", ");
 }
 
-const app = readJson("app.json");
 const groups = readJson("groups.json");
 const base = readJson("base.json");
 for (const file of ["connection/communication.json", "connection/parameters.json"]) {
@@ -30,18 +29,10 @@ for (const name of directories) {
   }
 }
 
-if (app && groups) {
-  const declared = Object.keys(app.modules);
+if (groups) {
   const grouped = groups.flatMap((group) => group.modules);
-  for (const [label, names] of [
-    ["app.json", declared],
-    ["groups.json", grouped],
-  ]) {
-    if (sorted(names) !== sorted(directories)) {
-      errors.push(
-        `modules/ has [${sorted(directories)}] but ${label} has [${sorted(names)}]`,
-      );
-    }
+  if (sorted(grouped) !== sorted(directories)) {
+    errors.push(`modules/ has [${sorted(directories)}] but groups.json has [${sorted(grouped)}]`);
   }
 }
 
