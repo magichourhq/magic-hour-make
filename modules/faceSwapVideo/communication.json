@@ -1,0 +1,19 @@
+{
+  "url": "/face-swap",
+  "method": "POST",
+  "type": "json",
+  "body": {
+    "{{...}}": "{{omit(parameters, 'sourceImage', 'targetVideo')}}",
+    "assets": {
+      "face_swap_mode": "all-faces",
+      "image_file_path": "{{parameters.sourceImage}}",
+      "video_source": "file",
+      "video_file_path": "{{parameters.targetVideo}}"
+    }
+  },
+  "response": {
+    "output": "{{body}}"
+  },
+  "followRedirects": false,
+  "followAllRedirects": false
+}
