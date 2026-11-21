@@ -65,7 +65,7 @@ if (!connection) {
 }
 const connectionUrl = `${root}/connections/${connection.name}`;
 
-await request("POST", `${versionPath}/base`, { file: "base.json" });
+await request("PUT", `${versionPath}/base`, { file: "base.json" });
 await request("PUT", `${connectionUrl}/api`, { file: "connection/communication.json" });
 await request("PUT", `${connectionUrl}/parameters`, { file: "connection/parameters.json" });
 
