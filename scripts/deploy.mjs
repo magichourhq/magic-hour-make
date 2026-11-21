@@ -41,6 +41,10 @@ async function request(method, url, { json, file } = {}) {
 // A dry run calls nothing, so it plans for an app with no connection or modules yet.
 const connections = (await request("GET", `${appPath}/connections`)).appConnections ?? [];
 let connection = connections.find((item) => item.label === app.connection.label);
+if (!connection && connections.length > 0) {
+  const labels = connections.map((item) => item.label).join(", ");
+  throw new Error(`No connection labelled "${app.connection.label}"; the app has [${labels}]`);
+}
 if (!connection) {
   const created = await request("POST", `${appPath}/connections`, { json: app.connection });
   connection = created.appConnection ?? { name: "<connection>" };
@@ -52,6 +56,12 @@ await request("PUT", `${connectionUrl}/api`, { file: "connection/communication.j
 await request("PUT", `${connectionUrl}/parameters`, { file: "connection/parameters.json" });
 
 const existing = (await request("GET", `${versionPath}/modules`)).appModules ?? [];
+// Modules on a published app can't be deleted, so a renamed directory must not add a second module.
+const absent = Object.keys(app.modules).filter((name) => !existing.some((item) => item.name === name));
+if (existing.length > 0 && absent.length > 0) {
+  const names = existing.map((item) => item.name).join(", ");
+  throw new Error(`The app has modules [${names}] but not [${absent.join(", ")}]`);
+}
 for (const [name, module] of Object.entries(app.modules)) {
   const { label, description, typeId, crud } = module;
   const moduleUrl = `${versionPath}/modules/${name}`;

@@ -6,43 +6,43 @@
   "modules": {
     "generateImage": {
       "label": "Generate an AI image",
-      "description": "Creates an AI image from a text prompt.",
+      "description": "Creates an image from a prompt. Returns a generation ID; use Get generation status to retrieve the completed image. Uses Magic Hour credits.",
       "typeId": 4,
       "crud": "create"
     },
     "faceSwapPhoto": {
       "label": "Swap faces in a photo",
-      "description": "Swaps faces from a source image into a target image.",
+      "description": "Swaps a face into a photo. Returns a generation ID; use Get generation status with Image to retrieve the completed result. Uses Magic Hour credits.",
       "typeId": 4,
       "crud": "create"
     },
     "faceSwapVideo": {
       "label": "Swap faces in a video",
-      "description": "Swaps faces from a source image into a video.",
+      "description": "Swaps a face into a video clip. Returns a generation ID; use Get generation status with Video to retrieve the completed result. Uses Magic Hour credits.",
       "typeId": 4,
       "crud": "create"
     },
     "imageToVideo": {
       "label": "Animate an image",
-      "description": "Creates a video from a starting image.",
+      "description": "Animates an image with LTX 2.5 at 480p. Returns a generation ID; use Get generation status with Video to retrieve the completed clip. Uses Magic Hour credits.",
       "typeId": 4,
       "crud": "create"
     },
     "textToVideo": {
       "label": "Generate a video from text",
-      "description": "Creates a video from a text prompt.",
+      "description": "Creates a video from a prompt with LTX 2.5 at 480p. Returns a generation ID; use Get generation status with Video to retrieve the clip. Uses Magic Hour credits.",
       "typeId": 4,
       "crud": "create"
     },
     "getGenerationStatus": {
       "label": "Get generation status",
-      "description": "Gets the status and download URLs of an image, video, or audio generation.",
+      "description": "Retrieves the status, charged credits, download links and errors for an existing image, video or audio generation. Does not create another generation.",
       "typeId": 4,
       "crud": "read"
     },
     "makeApiCall": {
       "label": "Make an API call",
-      "description": "Performs an arbitrary authorized call to the Magic Hour API.",
+      "description": "Performs an authorized call to the Magic Hour API. Supports custom headers and JSON object, array, or mapped bodies; uses the attached API-key connection.",
       "typeId": 12,
       "crud": null
     }
