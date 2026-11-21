@@ -1,6 +1,6 @@
 # Magic Hour for Make
 
-Module definitions for the Magic Hour custom app on [Make](https://www.make.com) (`magic-hour`, version 1, on `us2.make.com`).
+Module definitions for the Magic Hour custom app on [Make](https://www.make.com). This repository is the source of truth: a deploy uploads these files to the app in your Make account.
 
 Connection authorization, API errors, and log sanitization are inherited from the app Base. Keep the Base fixed to Magic Hour and redact the Authorization header. All module requests disable GET and non-GET redirects. Connection metadata identifies the authenticated account by email, falling back to its account ID when email is unavailable. Never put an API key in a source file.
 
@@ -14,11 +14,31 @@ Connection authorization, API errors, and log sanitization are inherited from th
 | `getGenerationStatus` | Get generation status      | Action           | Read   |
 | `makeApiCall`         | Make an API call           | Universal / REST | None   |
 
-Each module directory holds `communication.json`, `expect.json` (mappable parameters), and `interface.json`. `groups.json` places retrieval before creation and leaves only Make an API call in Other.
+Each module directory holds `communication.json`, `expect.json` (mappable parameters), and `interface.json`. `app.json` holds the connection and each module's label, description, type, and action. `groups.json` places retrieval before creation and leaves only Make an API call in Other.
 
-## Check
+## Deploy
 
-`yarn check` validates the JSON files, that `modules/` and `groups.json` list the same modules, and that the Base keeps the Magic Hour URL and redacts the Authorization header. It runs on every pull request.
+`scripts/deploy.mjs` needs Node 24 and no dependencies. It reads these environment variables:
+
+| Name               | Kind                | Example     |
+| ------------------ | ------------------- | ----------- |
+| `MAKE_API_KEY`     | Secret (token with `sdk-apps:read` and `sdk-apps:write`) | |
+| `MAKE_ZONE`        | Variable            | `us2.make.com` |
+| `MAKE_APP_NAME`    | Variable            | the app's name in Make (create the app in the Make UI first) |
+| `MAKE_APP_VERSION` | Variable            | `1`         |
+
+The workflow in `.github/workflows/deploy.yml` runs on every push to `main` that changes a definition, and on manual dispatch. It skips with a notice until the secret and the three variables are set in the repository settings.
+
+To run it locally:
+
+```sh
+MAKE_API_KEY=... MAKE_ZONE=us2.make.com MAKE_APP_NAME=magic-hour MAKE_APP_VERSION=1 yarn deploy
+yarn deploy --dry-run   # print the requests without calling Make
+```
+
+The script is idempotent. It creates the API Key connection and any missing module, then uploads the Base, the connection Communication and Parameters, each module's Communication, Mappable parameters, and Interface, and the Groups. It also updates module labels, descriptions, and connection, and makes every module visible. Make applies uploads immediately to scenarios that use the app. A module's type and action are only set when the module is created.
+
+`yarn check` validates the JSON files and that `modules/`, `app.json`, and `groups.json` list the same modules. It runs on every pull request together with `deploy --dry-run`.
 
 ## Review
 
