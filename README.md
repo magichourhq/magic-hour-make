@@ -1,6 +1,6 @@
 # Magic Hour for Make
 
-Module definitions for the Magic Hour custom app on [Make](https://www.make.com). This repository is the source of truth: a deploy uploads these files to the app in your Make account.
+Module definitions for the Magic Hour custom app on [Make](https://www.make.com) (`magic-hour`, version 1, on `us2.make.com`). This repository is the source of truth: a deploy uploads these files to that app.
 
 Connection authorization, API errors, and log sanitization are inherited from the app Base. Keep the Base fixed to Magic Hour and redact the Authorization header. All module requests disable GET and non-GET redirects. Connection metadata identifies the authenticated account by email, falling back to its account ID when email is unavailable. Never put an API key in a source file.
 
@@ -38,7 +38,9 @@ yarn deploy --dry-run   # print the requests without calling Make
 
 The script is idempotent. It creates the API Key connection and any missing module, then uploads the Base, the connection Communication and Parameters, each module's Communication, Mappable parameters, and Interface, and the Groups. It also updates module labels, descriptions, and connection, and makes every module visible. Make applies uploads immediately to scenarios that use the app. A module's type and action are only set when the module is created.
 
-`yarn check` validates the JSON files and that `modules/`, `app.json`, and `groups.json` list the same modules. It runs on every pull request together with `deploy --dry-run`.
+## Check
+
+`yarn check` validates the JSON files, that `modules/`, `app.json` and `groups.json` list the same modules, and that the Base keeps the Magic Hour URL and redacts the Authorization header. It runs on every pull request, together with `deploy --dry-run`.
 
 ## Review
 
